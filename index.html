@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Sorting algorithms — CS fundamentals</title>
+<style>
+:root{--orange:#ff7b22;--muted:#999;--white:#f4f4f4;--line:#424242}
+*{box-sizing:border-box}html{background:#000}body{margin:0;color:var(--white);background:#000;font-family:Arial,Helvetica,sans-serif;-webkit-font-smoothing:antialiased}
+.page{width:min(655px,100%);margin:0 auto;padding:36px 30px 38px}
+.eyebrow{font-size:16px;font-weight:700;color:var(--orange);margin:0 0 7px 6px}.heading{font-size:41px;line-height:1.04;letter-spacing:-1.75px;font-weight:800;margin:0 0 5px 6px}.subheading{font-size:18px;color:#999;margin:0 0 19px 7px}
+.board{border:2px solid #d1d1d1;border-radius:11px;overflow:hidden}.algo{display:grid;grid-template-columns:253px minmax(0,1fr);min-height:116px}.algo+.algo{border-top:1px solid #444}.copy{padding:13px 18px;border-right:1px solid #444}.num{color:var(--orange);font-size:14px;font-weight:800;margin-bottom:4px}.name{font-size:22px;font-weight:800;letter-spacing:-.65px;margin-bottom:5px}.desc{font-size:14.5px;color:#999;line-height:1.35;max-width:210px}.demo{position:relative;min-height:115px;overflow:hidden}.track{position:absolute;left:50%;top:46px;transform:translateX(-50%);width:190px;height:32px}.tile{position:absolute;top:0;width:31px;height:31px;border:2px solid #c6c6c6;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;background:#000;transition:left .45s ease,top .45s ease,border-color .2s ease,color .2s ease;will-change:left,top}.tile.active{border-color:var(--orange);color:var(--orange)}.tile.done{border-color:#777;color:#eee}.note{position:absolute;bottom:4px;width:100%;text-align:center;color:#ddd;font-size:11px;font-weight:700;white-space:nowrap}.note.orange{color:var(--orange)}.pivot-label{position:absolute;top:16px;color:var(--orange);font-size:11px;font-weight:700;left:50%;transform:translateX(-50%);display:none}.separator{position:absolute;top:38px;height:31px;width:1px;background:var(--orange);display:none}.algo:first-child .track{top:31px}.algo:first-child .note{display:none}
+.toolbar{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:10px;margin:21px auto 0;font-size:12px}.toolbar button{border:1px solid #676767;border-radius:7px;background:#101010;color:white;padding:9px 12px;cursor:pointer;font-weight:700}.toolbar button.primary{background:var(--orange);color:#000;border-color:var(--orange)}.toolbar button:hover{border-color:#fff}.toolbar select{background:#101010;color:#eee;border:1px solid #666;border-radius:6px;padding:8px}.tip{text-align:center;color:#777;font-size:11px;margin-top:10px}
+@media(max-width:540px){.page{padding:25px 13px}.heading{font-size:36px}.board{border-radius:10px}.algo{grid-template-columns:43% 57%;min-height:122px}.copy{padding:13px 10px}.name{font-size:18px}.desc{font-size:12px}.demo{min-height:121px}.track{transform:translateX(-50%) scale(.78);transform-origin:center center}.note{font-size:9px;white-space:normal;padding:0 3px}.pivot-label{top:16px}}
+@media(prefers-reduced-motion:reduce){.tile{transition:none}}
+</style>
+</head>
+<body>
+<main class="page">
+<p class="eyebrow">CS fundamentals</p>
+<h1 class="heading">Sorting algorithms</h1>
+<p class="subheading">Same list, 5 ways to put it in order</p>
+<section class="board" aria-label="Sorting algorithms animation">
+  <article class="algo"><div class="copy"><div class="num">01</div><div class="name">Bubble sort</div><div class="desc">Swap neighbours until nothing is out of order</div></div><div class="demo" id="bubble"><div class="pivot-label">pivot</div><div class="track"></div><div class="separator"></div><div class="note"></div></div></article>
+  <article class="algo"><div class="copy"><div class="num">02</div><div class="name">Selection sort</div><div class="desc">Find the smallest, move it to the front, repeat</div></div><div class="demo" id="selection"><div class="pivot-label">pivot</div><div class="track"></div><div class="separator"></div><div class="note"></div></div></article>
+  <article class="algo"><div class="copy"><div class="num">03</div><div class="name">Insertion sort</div><div class="desc">Pick each item and slide it into place on the left</div></div><div class="demo" id="insertion"><div class="pivot-label">pivot</div><div class="track"></div><div class="separator"></div><div class="note"></div></div></article>
+  <article class="algo"><div class="copy"><div class="num">04</div><div class="name">Merge sort</div><div class="desc">Split in half, sort each half, merge them back</div></div><div class="demo" id="merge"><div class="pivot-label">pivot</div><div class="track"></div><div class="separator"></div><div class="note"></div></div></article>
+  <article class="algo"><div class="copy"><div class="num">05</div><div class="name">Quick sort</div><div class="desc">Pick a pivot, smaller go left, bigger go right</div></div><div class="demo" id="quick"><div class="pivot-label">pivot</div><div class="track"></div><div class="separator"></div><div class="note"></div></div></article>
+</section>
+<div class="toolbar"><button class="primary" id="play">▶ Play all</button><button id="reset">↺ Reset</button><button id="shuffle">⇄ Shuffle</button><label for="speed">Speed</label><select id="speed"><option value="1300">Slow</option><option value="750" selected>Normal</option><option value="380">Fast</option></select></div>
+<div class="tip">Click any algorithm row to play just that sorting method.</div>
+</main>
+<script>
+const kinds=['bubble','selection','insertion','merge','quick'];
+let original=[1,4,3,5,2], frames={}, positions={}, indexes={}, timer=null, playing=false, single=null;
+const snapshot=(arr, active=[],note='',opts={})=>({arr:[...arr],active:[...active],note,...opts});
+function bubble(input){const a=[...input],f=[snapshot(a,[],'Compare adjacent numbers')];for(let end=a.length-1;end>0;end--){let swapped=false;for(let j=0;j<end;j++){f.push(snapshot(a,[j,j+1],`compare ${a[j]} and ${a[j+1]}`));if(a[j]>a[j+1]){[a[j],a[j+1]]=[a[j+1],a[j]];f.push(snapshot(a,[j,j+1],`swap ${a[j]} and ${a[j+1]}`));swapped=true}}if(!swapped)break}f.push(snapshot(a,[],'Sorted!'));return f}
+function selection(input){const a=[...input],f=[snapshot(a,[0,a.indexOf(Math.min(...a))],`smallest is ${Math.min(...a)}: swap to the front`)];for(let i=0;i<a.length;i++){let min=i;for(let j=i+1;j<a.length;j++){f.push(snapshot(a,[min,j],`find the smallest remaining number`));if(a[j]<a[min])min=j}if(i!==min){f.push(snapshot(a,[i,min],`swap ${a[min]} to position ${i+1}`));[a[i],a[min]]=[a[min],a[i]];f.push(snapshot(a,[i],`${a[i]} is now in place`))}}f.push(snapshot(a,[],'Sorted!'));return f}
+function insertion(input){const a=[...input],f=[snapshot(a,[0],`${a[0]} starts the sorted section`)];for(let i=1;i<a.length;i++){let j=i;f.push(snapshot(a,[j],`insert ${a[j]} into the left side`));while(j>0&&a[j]<a[j-1]){const right=a[j-1],left=a[j];[a[j],a[j-1]]=[a[j-1],a[j]];j--;f.push(snapshot(a,[j],`${left} slides in before ${right}`))}}f.push(snapshot(a,[],'Sorted!'));return f}
+function merge(input){let a=[...input],f=[snapshot(a,[0,4],'sort each half',{split:true})];function sort(lo,hi){if(hi-lo<2)return;let mid=Math.floor((lo+hi)/2);f.push(snapshot(a,[],`split into smaller groups`,{split:true}));sort(lo,mid);sort(mid,hi);let left=a.slice(lo,mid),right=a.slice(mid,hi),combined=[],i=0,j=0;while(i<left.length||j<right.length){if(j===right.length||(i<left.length&&left[i]<=right[j]))combined.push(left[i++]);else combined.push(right[j++])}for(let k=lo;k<hi;k++)a[k]=combined[k-lo];f.push(snapshot(a,Array.from({length:hi-lo},(_,k)=>k+lo),`merge the ordered groups`,{split:hi-lo<a.length}))}sort(0,a.length);f.push(snapshot(a,[],'Sorted!'));return f}
+function quick(input){const a=[...input],f=[snapshot(a,[2],`pick a pivot: ${a[2]}`,{pivot:2})];function sort(lo,hi){if(lo>=hi)return;const pivot=a[hi];f.push(snapshot(a,[hi],`pick a pivot: ${pivot}`,{pivot:hi}));let i=lo;for(let j=lo;j<hi;j++){f.push(snapshot(a,[j,hi],`${a[j]} ${a[j]<pivot?'goes left':'stays right'} of ${pivot}`,{pivot:hi}));if(a[j]<pivot){[a[i],a[j]]=[a[j],a[i]];f.push(snapshot(a,[i,j],`put ${a[i]} on the left`,{pivot:hi}));i++}}[a[i],a[hi]]=[a[hi],a[i]];f.push(snapshot(a,[i],`pivot ${pivot} is in place`,{pivot:i}));sort(lo,i-1);sort(i+1,hi)}sort(0,a.length-1);f.push(snapshot(a,[],'Sorted!'));return f}
+const factories={bubble,selection,insertion,merge,quick};
+function initialize(){clearInterval(timer);playing=false;single=null;document.getElementById('play').textContent='▶ Play all';frames={};indexes={};positions={};for(const kind of kinds){frames[kind]=factories[kind](original);indexes[kind]=0;positions[kind]=[];const track=document.querySelector(`#${kind} .track`);track.replaceChildren();original.forEach((n,id)=>{const tile=document.createElement('span');tile.className='tile';tile.textContent=n;tile.dataset.id=id;track.appendChild(tile)});draw(kind)}}
+function draw(kind){const demo=document.getElementById(kind),track=demo.querySelector('.track'),frame=frames[kind][indexes[kind]];const last=positions[kind]||[];let available=[...original.keys()];const used=[];frame.arr.forEach((value,i)=>{let id=available.find(id=>original[id]===value&&!used.includes(id));used.push(id);const tile=track.querySelector(`[data-id="${id}"]`);tile.style.left=`${i*40}px`;tile.style.top=frame.split?`${i<2?-9:0}px`:'0px';tile.classList.toggle('active',frame.active.includes(i));tile.classList.toggle('done',frame.note==='Sorted!')});positions[kind]=frame.arr;const note=demo.querySelector('.note');note.textContent=frame.note;note.classList.toggle('orange',frame.note==='Sorted!');const pivot=demo.querySelector('.pivot-label');pivot.style.display=frame.pivot==null?'none':'block';pivot.style.left=`calc(50% - 95px + ${frame.pivot*40+15}px)`;const sep=demo.querySelector('.separator');sep.style.display=frame.split?'block':'none';sep.style.left='calc(50% + 0px)'}
+function tick(){let any=false;for(const kind of kinds){if(single&&kind!==single)continue;if(indexes[kind]<frames[kind].length-1){indexes[kind]++;draw(kind);any=true}}if(!any)pause()}
+function pause(){clearInterval(timer);timer=null;playing=false;document.getElementById('play').textContent='▶ Play all'}
+function start(kind=null){if(playing)pause();if(kind!==single){initialize()}single=kind;playing=true;document.getElementById('play').textContent='Ⅱ Pause';timer=setInterval(tick,Number(document.getElementById('speed').value));tick()}
+document.getElementById('play').onclick=()=>playing?pause():start(null);
+document.getElementById('reset').onclick=()=>initialize();
+document.getElementById('shuffle').onclick=()=>{original=[...original].sort(()=>Math.random()-.5);initialize()};
+document.getElementById('speed').onchange=()=>{if(playing){clearInterval(timer);timer=setInterval(tick,Number(document.getElementById('speed').value))}};
+for(const kind of kinds)document.getElementById(kind).closest('.algo').addEventListener('click',()=>start(kind));
+initialize();
+</script>
+</body>
+</html>
